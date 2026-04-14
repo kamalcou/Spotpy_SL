@@ -41,9 +41,8 @@ This code:
 
 1. Clone the repository and enter it.
    ```bash
-   git clone https://github.com/slama0077/ayman_cal_SL.git
+   git clone https://github.com/slama0077/Spotpy_SL.git
    cd ayman_cal_SL
-   git checkout Parallel
    ```
 2. Install OpenMPI.
    - macOS:
