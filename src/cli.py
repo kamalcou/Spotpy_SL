@@ -2,17 +2,16 @@ from enum import Enum
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Annotated
-
 from mpi4py import MPI
 import typer
 import traceback
 from cal_utils import run_spotpy
 from helper import *
-import warnings
 
 
-
-warnings.filterwarnings("ignore", category=SyntaxWarning)
+def set_calibration_params(params: dict) -> None:
+    global CALIBRATION_PARAMS
+    CALIBRATION_PARAMS = params
 
 class Algorithm(str, Enum):
     SCE = "SCE"
@@ -32,7 +31,7 @@ class ExecutionMode(str, Enum):
 app = typer.Typer(help="Run SPOTPY calibration for NextGen hydrologic model")
 
 
-def str_to_bool(value):
+def str_to_bool(value: object) -> bool:
     if isinstance(value, bool):
         return value
     value = str(value)
@@ -89,7 +88,7 @@ def calibration(
     ] = 330,
 ) -> int:
     data_root = data_root.expanduser()
-    merge_catchment = str_to_bool(merge_catchment) # pyright: ignore[reportAssignmentType]
+    merge_catchment_bool = str_to_bool(merge_catchment) 
 
     args = SimpleNamespace(
         gage_id=gage_id,
@@ -102,35 +101,36 @@ def calibration(
         repetitions=repetitions,
         dds_trials=dds_trials,
         execution_mode=execution_mode.value,
-        merge_catchment=merge_catchment,
+        merge_catchment_bool=merge_catchment_bool,
         merge_area=merge_area,
     )
 
     data_dir = data_root / f"gage-{gage_id}"
-    realization_path = data_dir / "config" / "realization.json"
-    troute_path = data_dir / "config" / "troute.yaml"
     observed_flow_path = data_root / f"{gage_id}_observed_flow_{start_date}_{end_date}.pkl"
-    troute_output_path = data_dir / "outputs" / "troute" / get_troute_output_name(realization_path)
-    tensorboard_logdir = data_dir / "tensorboard_logs"
+    troute_output_path = data_dir / "outputs" / "troute" / get_troute_output_name(data_dir / "config" / "realization.json") 
+    tensorboard_logdir = data_dir / "calibration" / "tensorboard_logs"
 
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     size = comm.Get_size()
+
+    #need to define this to broadcast to other ranks
     groups = None
+    clone_root = None
 
     if execution_mode.value == "serial" and size > 1:
         if rank == 0:
             raise ValueError(
-                "Warning: Running in serial mode but MPI detected multiple processes. For serial execution, run without mpirun."
+                "Warning: Running in serial mode but MPI detected multiple processes. For serial execution, run without mpirun.\n\n"
             )
 
     if execution_mode.value == "parallel" and size == 1:
         if rank == 0:
-            raise ValueError("Parallel mode requested, but only 1 MPI process detected.")
+            raise ValueError("Parallel mode requested, but only 1 MPI process detected.\n\n")
 
     if rank == 0:
         if not observed_flow_path.exists():
-            print(f"Retrieving observed streamflow for gage {gage_id}...")
+            print(f"\n\nRetrieving observed streamflow for gage {gage_id}...\n\n")
             process_usgs_streamflow(
                 gage_id,
                 start_date,
@@ -138,28 +138,29 @@ def calibration(
                 output_path=observed_flow_path,
             )
         else:
-            print(f"Using existing observed flow data: {observed_flow_path}")
+            print(f"\n\nUsing existing observed flow data: {observed_flow_path}\n\n")
 
     comm.Barrier()
     try:
         if rank == 0:
-            print_calibration_configuration(args=args, size=size)
-            prepare_config_merged_simulation(
-                data_dir,
-                realization_path=realization_path,
-                troute_path=troute_path,
-                execution_mode=execution_mode.value,
+            clone_root = create_directories(data_dir)
+            prepare_config(
+                clone_root,
+                execution_mode=execution_mode.value
             )
-            if merge_catchment:
+            if merge_catchment_bool:
                 groups = merge_and_prepare_forcing(
-                    data_dir=data_dir,
+                    data_dir=clone_root,
                     execution_mode=execution_mode.value,
                     merge_area=float(merge_area),
                 )
+            print_calibration_configuration(args=args, size=size)  
 
         comm.Barrier()
+        clone_root = comm.bcast(clone_root, root=0)
         groups = comm.bcast(groups, root=0)
-        feature_id = int(get_feature_id(data_dir))
+        comm.Barrier()
+        feature_id = int(get_feature_id(clone_root))
         comm.Barrier()
 
         best_params = run_spotpy(
@@ -169,22 +170,23 @@ def calibration(
             training_start_date,
             observed_flow_path,
             troute_output_path,
-            data_dir,
+            clone_root ,
             feature_id,
             rank,
             algorithm=algorithm.value,
             objective_function=objective_function.value,
             groups=groups,
-            merge_catchment=merge_catchment,
+            merge_catchment=merge_catchment_bool,
+            calibration_params=CALIBRATION_PARAMS,
+            tensorboard_logdir=tensorboard_logdir,
             repetitions=repetitions,
             dds_trials=dds_trials,
             execution_mode=execution_mode.value,
             number_of_cores=size if execution_mode.value == "parallel" else 1,
-            tensorboard_logdir=tensorboard_logdir,
         )
 
         if rank == 0:
-            output_file = data_dir / "spotpy" / "best_params.csv"
+            output_file = data_dir / "calibration" / "spotpy" / "best_params.csv"
             with open(output_file, "w") as file:
                 header = ",".join([name[3:] for name in best_params[0].dtype.names])
                 file.write(header + "\n")
@@ -198,10 +200,11 @@ def calibration(
             print("\nTo view TensorBoard results, run:")
             print(f"tensorboard --logdir={tensorboard_logdir}")
             print(f"{'=' * 60}\n")
-            restore_data_dir(data_dir=data_dir, merge_catchment=merge_catchment)
+            restore_data_dir(clone_root)
 
     except Exception as e:
-        print(f"run_spotpy failed with error: {e} (Process rank {rank})")
+        print(f"run_spotpy failed with error: {e} (Process rank {rank})\n\n")
+        # restore_data_dir(clone_root)
         traceback.print_exc()
 
     return 0

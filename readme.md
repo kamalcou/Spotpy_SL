@@ -15,6 +15,7 @@ This project calibrates NextGen model parameters with SPOTPY and supports both s
 - [Monitoring Progress](#monitoring-progress)
 - [Troubleshooting](#troubleshooting)
 - [Workflow](#workflow)
+- [Customizing Calibration Parameters](#customizing-calibration-parameters)
 - [Additional Notes](#additional-notes)
 - [Support](#support)
 
@@ -41,8 +42,7 @@ This code:
 
 1. Clone the repository and enter it.
    ```bash
-   git clone https://github.com/slama0077/Spotpy_SL.git
-   cd ayman_cal_SL
+   git clone https://github.com/slama0077/NGIAB-Spotpy_SL.git 
    ```
 2. Install OpenMPI.
    - macOS:
@@ -224,12 +224,17 @@ python -m calibration --help
 
 ```text
 data_root/gage-{gage_id}/
-├── spotpy/
-│   ├── best_params.csv              # Best calibrated parameters
-│   ├── spotpy_results_<ALG>_<OBJ>.csv
-│   └── plots/                       # Optional diagnostic plots
-├── tensorboard_logs/
-│   └── <run_name>/
+├── calibration/
+│   ├── spotpy/
+│   │   ├── best_params.csv              # Best calibrated parameters
+│   │   ├── spotpy_results_<ALG>_<OBJ>.csv
+│   │   └── plots/                       # Optional diagnostic plots
+│   ├── tensorboard_logs/
+│   │   └── <run_name>/
+│   └── archive/
+│       ├── {merge_area}/
+│           ├── merged.gpkg                  # Merged geopackage for a given merge area(when merge_catchment=True)
+│           └── forcings.nc                  # Forcings used for merged simulation
 └── config/
     └── realization.json             # Updated with best parameters
 ```
@@ -242,16 +247,13 @@ One-row CSV containing the winning parameter set.
 
 Full optimization history, including tried parameter vectors and objective values. Use this file when you want to analyze convergence behavior.
 
-### Why You May See MPI Abort Text
-
-You may see output like `MPI_ABORT was invoked...` near the end. In this codebase, that message is expected during shutdown and does not automatically indicate calibration failure.
 
 ## Monitoring Progress
 
 Run TensorBoard in another terminal:
 
 ```bash
-tensorboard --logdir=/path/to/data_root/gage-{gage_id}/tensorboard_logs
+tensorboard --logdir=/path/to/data_root/gage-{gage_id}/calibration/tensorboard_logs
 ```
 
 Then open: `http://localhost:6006`
@@ -329,6 +331,13 @@ flowchart LR
     E[Evaluation/Metric Calculation] --> F
     F(Clean up temporary files and directories)
 ```
+
+## Customizing Calibration Parameters
+
+You can change which parameters are calibrated (and their bounds/initial guesses) by editing `src/calibration.py`.
+
+- Update `CFE_PARAMS` and `NOAH_PARAMS` to add/remove parameters or adjust `Uniform(min, max, optguess=...)`.
+
 ## Additional Notes
 
 ### Algorithm Selection

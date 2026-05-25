@@ -1,8 +1,14 @@
+from __future__ import annotations
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
 from pathlib import Path
+from typing import Any, Sequence
+from flush_output import suppress_spotpy_syntax_warnings
+
+suppress_spotpy_syntax_warnings()
 from spotpy.analyser import (
     get_maxlikeindex,
     get_parameternames,
@@ -16,8 +22,11 @@ sns.set_context("notebook")
 
 
 def plot_parametertrace(
-    results, parameternames=None, fig_name="Parameter_trace.png", output_folder=None
-):
+    results: Any,
+    parameternames: Sequence[str] | None = None,
+    fig_name: str = "Parameter_trace.png",
+    output_folder: str | Path | None = None,
+) -> None:
     """Plot parameter traces using seaborn styling"""
     if not parameternames:
         parameternames = get_parameternames(results)
@@ -69,7 +78,11 @@ def plot_parametertrace(
     print(f'The figure has been saved as "{save_path}"')
 
 
-def plot_parameterInteraction(results, fig_name="ParameterInteraction.png", output_folder=None):
+def plot_parameterInteraction(
+    results: Any,
+    fig_name: str = "ParameterInteraction.png",
+    output_folder: str | Path | None = None,
+) -> None:
     """Create parameter interaction matrix using seaborn pairplot"""
     parameterdistribution = get_parameters(results)
     parameternames = get_parameternames(results)
@@ -104,7 +117,14 @@ def plot_parameterInteraction(results, fig_name="ParameterInteraction.png", outp
     print(f'Parameter interaction plot saved as "{save_path}"')
 
 
-def plot_bestmodelrun(results, evaluation, fig_name="Best_model_run.png", output_folder=None):
+def plot_bestmodelrun(
+    results: Any,
+    evaluation: np.ndarray,
+    objective_function: str,
+    invert_objective: bool,
+    fig_name: str = "Best_model_run.png",
+    output_folder: str | Path | None = None,
+) -> None:
     """Plot best model run with seaborn styling"""
     # Set style for this plot
     sns.set_style("darkgrid")
@@ -125,6 +145,16 @@ def plot_bestmodelrun(results, evaluation, fig_name="Best_model_run.png", output
     simulation_fields = get_simulation_fields(results)
     bestindex, bestobjf = get_maxlikeindex(results, verbose=False)
     best_simulation = list(results[simulation_fields][bestindex][0])
+
+    #reversing what is done in the objective_function of spotpy
+    if invert_objective:
+        if objective_function == "KGE":
+            bestobjf = 1 - bestobjf
+        else:
+            bestobjf = -bestobjf
+    else:
+        if objective_function == "KGE":
+            bestobjf = bestobjf + 1
 
     # Plot best simulation with seaborn
     x_sim = range(len(best_simulation))
@@ -172,7 +202,11 @@ def plot_bestmodelrun(results, evaluation, fig_name="Best_model_run.png", output
 
 
 # Optional: Add a new function for correlation heatmap
-def plot_parameter_correlation(results, fig_name="ParameterCorrelation.png", output_folder=None):
+def plot_parameter_correlation(
+    results: Any,
+    fig_name: str = "ParameterCorrelation.png",
+    output_folder: str | Path | None = None,
+) -> None:
     """Create a correlation heatmap of parameters using seaborn"""
     parameterdistribution = get_parameters(results)
     parameternames = get_parameternames(results)

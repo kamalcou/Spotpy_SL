@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import sqlite3
 from enum import Enum
 from pathlib import Path
+from typing import Any
 
 import geopandas as gpd
 import numpy as np
@@ -23,12 +26,12 @@ class Layers(Enum):
 class GeoPackage:
     gpkg_path: Path
     divides: gpd.GeoDataFrame
-    subdivides: gpd.GeoDataFrame | None
+    # subdivides: gpd.GeoDataFrame | None
     divide_attributes: pd.DataFrame
     flowpath_attributes: pd.DataFrame
     flowpaths: gpd.GeoDataFrame
     nexus: gpd.GeoDataFrame
-    network: pd.DataFrame | None
+    network: pd.DataFrame
 
     def __init__(self, gpkg_path: Path):
         self.gpkg_path = gpkg_path
@@ -58,7 +61,7 @@ class GeoPackage:
         }
         return layers
 
-    def save(self, save_as: Path = Path("/dev/null")):
+    def save(self, save_as: Path = Path("/dev/null")) -> None:
         if save_as == Path("/dev/null"):
             save_as = Path(f"{self.gpkg_path.stem}_modified.gpkg")
 
@@ -81,16 +84,16 @@ class GeoPackage:
                 with sqlite3.connect(save_as) as conn:
                     gdf.to_sql(name, conn, if_exists="replace", index=True)
 
-    def execute_sql(self, sql: str) -> list:
+    def execute_sql(self, sql: str) -> list[tuple[Any, ...]]:
         with sqlite3.connect(self.gpkg_path) as conn:
             return conn.execute(sql).fetchall()
 
-    def _get_areasqkm_dict(self):
+    def _get_areasqkm_dict(self) -> dict[str, float]:
         sql = "SELECT divide_id, areasqkm FROM 'divides'"
         results = self.execute_sql(sql)
-        return dict(results)
+        return {str(k): float(v) for k, v in results}
 
-    def _get_areasqkm_xarray(self):
+    def _get_areasqkm_xarray(self) -> xr.DataArray:
         weights_dict = self._get_areasqkm_dict()
         da = xr.DataArray.from_dict(
             {
@@ -101,7 +104,7 @@ class GeoPackage:
         )
         return da
 
-    def _merge_divide_attributes(self, ids: list[str], new_id: str):
+    def _merge_divide_attributes(self, ids: list[str], new_id: str) -> None:
         if not new_id:
             raise ValueError("new_id must be provided")
         df = self.divide_attributes.loc[ids]
@@ -150,7 +153,7 @@ class GeoPackage:
             ids.remove(new_id)
         self.divide_attributes.drop(ids, inplace=True)
 
-    def _merge_divides(self, ids: list[str], new_id: str):
+    def _merge_divides(self, ids: list[str], new_id: str) -> None:
         if not new_id:
             raise ValueError("new_id must be provided")
 
@@ -184,7 +187,7 @@ class GeoPackage:
         for id in ids:
             self.network.loc[-1] = [new_id, id]
 
-    def _rename_divide(self, old_id: str, new_id: str):
+    def _rename_divide(self, old_id: str, new_id: str) -> None:
         if not new_id:
             raise ValueError("new_id must be provided")
         if old_id == new_id:
@@ -194,9 +197,8 @@ class GeoPackage:
         self.divide_attributes.rename(index={old_id: new_id}, inplace=True)
         self.network.loc[-1] = [new_id, old_id]
 
-    def merge(self, ids: list[str | list[str]]) -> None:
+    def merge(self, ids: list[list[int]]) -> None:
         # convert wb ids to cat ids
-
         for i, id_sublist in enumerate(ids):
             sub = ["cat-" + str(id).split("-")[0] for id in id_sublist]
 
