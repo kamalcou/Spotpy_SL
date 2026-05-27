@@ -132,28 +132,16 @@ cat ~/.ngiab/preprocessor
 python -u -m calibration --gage_id 10163000 --start_date 2015-06-15 --end_date 2015-08-15 --training_start_date 2015-07-15 --data_root /path/to/data_root --execution_mode serial
 ```
 
-Or using the installed entry point:
-
-```bash
-PYTHONUNBUFFERED=1 calibration --gage_id 10163000 --start_date 2015-06-15 --end_date 2015-08-15 --training_start_date 2015-07-15 --data_root /path/to/data_root --execution_mode serial
-```
-
 ### 3) Run parallel mode with merge_catchment feature (recommended for speed)
 
 ```bash
 mpirun -n 11 --oversubscribe python -u -m calibration --gage_id 10163000 --start_date 2015-06-15 --end_date 2015-08-15 --training_start_date 2015-07-15 --data_root /path/to/data_root --execution_mode parallel --merge_catchment True
 ```
 
-Or using the installed entry point:
-
-```bash
-PYTHONUNBUFFERED=1 mpirun -n 11 --oversubscribe calibration --gage_id 10163000 --start_date 2015-06-15 --end_date 2015-08-15 --training_start_date 2015-07-15 --data_root /path/to/data_root --execution_mode parallel --merge_catchment True
-```
-
 Unbuffered output notes:
 
 - Python buffers stdout when output is redirected or not attached to a terminal, which can make logs appear late or in bursts.
-- Use `-u` with `python` or `PYTHONUNBUFFERED=1` to force line-by-line output for live monitoring.
+- Use `-u` with `python` to force line-by-line output for live monitoring.
 
 ### Optional Arguments and Defaults (all optional)
 
