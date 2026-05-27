@@ -263,7 +263,7 @@ Useful dashboards:
 Use `--oversubscribe` with `mpirun`:
 
 ```bash
-PYTHONUNBUFFERED=1 mpirun -n 20 --oversubscribe calibration [arguments]
+mpirun -n 20 --oversubscribe python -u -m calibration [arguments]
 ```
 
 ### Issue: Process hangs or does not complete
