@@ -42,7 +42,7 @@ This code:
 
 1. Clone the repository and enter it.
    ```bash
-   git clone https://github.com/slama0077/NGIAB-Spotpy_SL.git 
+   git clone https://github.com/slama0077/Spotpy_SL.git
    ```
 2. Install OpenMPI.
    - macOS:
