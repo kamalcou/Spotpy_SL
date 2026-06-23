@@ -124,7 +124,10 @@ Example:
 ## Quick Start
 
 ### 1) Prepare data
-
+```bash
+pip install pipx
+pipx run --spec ngiab_data_preprocess cli -i gage-10109001 -sfr --start 2018-10-01 --end 2022-09-30 --source aorc
+```
 ```bash
 uvx --from ngiab_data_preprocess cli -i gage-10163000 -sfr --start 2015-06-15 --end 2015-08-15 --source aorc
 ```
