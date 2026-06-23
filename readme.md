@@ -37,6 +37,19 @@ This code:
 - Rust + Cargo (used to install routing dependency)
 - Docker (used by model execution)
 - Basic familiarity with `ngiab_data_preprocess`
+## HPC Installation
+```bash
+module load Python
+module load OpenMPI
+module load Rust
+module load cargo-c
+module load Apptainer
+module load git
+module load netCDF
+module load HDF5
+module load SQLite
+```
+
 
 ## Installation
 
@@ -60,10 +73,6 @@ This code:
 4. Install C compiler, Fortran, Rust/Cargo, and the routing package:
    - Linux (Debian/Ubuntu):
      ```bash
-     sudo apt install build-essential gfortran
-     sudo apt install -y libhdf5-dev libnetcdf-dev libsqlite3-dev
-     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-     source ~/.cargo/env
      rustup update stable
      cargo --version
      cargo install --git https://github.com/slama0077/route_rs.git --branch Calibration
