@@ -145,7 +145,11 @@ python -u -m calibration --gage_id 10163000 --start_date 2015-06-15 --end_date 2
 ```
 
 ### 3) Run parallel mode with merge_catchment feature (recommended for speed)
-
+```bash
+mpirun -n 64 --oversubscribe python -u -m 
+calibration --gage_id 10109001 --start_date 2018-10-01 --end_date 2018-12-30 --training_s
+tart_date 2018-11-01 --data_root /home/mhchowdhury/ngiab_preprocess_output --execution_mode parallel --merge_catchment True
+```
 ```bash
 mpirun -n 11 --oversubscribe python -u -m calibration --gage_id 10163000 --start_date 2015-06-15 --end_date 2015-08-15 --training_start_date 2015-07-15 --data_root /path/to/data_root --execution_mode parallel --merge_catchment True
 ```
