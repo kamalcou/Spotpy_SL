@@ -136,6 +136,9 @@ cat ~/.ngiab/preprocessor
 ```
 
 ### 2) Run serial mode (Do not forget to change /path/to/data_root)
+```bash
+python -u -m calibration --gage_id 10109001 --start_date 2018-10-01 --end_date 2018-12-30 --training_start_date 2018-11-01 /home/mhchowdhury/ngiab_preprocess_output --execution_mode serial
+```
 
 ```bash
 python -u -m calibration --gage_id 10163000 --start_date 2015-06-15 --end_date 2015-08-15 --training_start_date 2015-07-15 --data_root /path/to/data_root --execution_mode serial
