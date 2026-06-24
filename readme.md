@@ -112,7 +112,7 @@ This code:
    pip install -e .
    ```
    ```bash
-   conda create -n tools squashfuse -c conda-forge -y
+   conda create -n tools squashfuse gocryptfs -c conda-forge -y
    conda activate tools
    ```
 ## Expected Data Layout
