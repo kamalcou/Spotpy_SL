@@ -37,18 +37,7 @@ This code:
 - Rust + Cargo (used to install routing dependency)
 - Docker (used by model execution)
 - Basic familiarity with `ngiab_data_preprocess`
-## HPC Installation
-```bash
-module load Python
-module load OpenMPI
-module load Rust
-module load cargo-c
-module load Apptainer
-module load git
-module load netCDF
-module load HDF5
-module load SQLite
-```
+
 ## Installation
 
 1. Clone the repository and enter it.
@@ -73,6 +62,22 @@ module load SQLite
    mpirun --version
    ```
 5. Install C compiler, Fortran, Rust/Cargo, and the routing package:
+ - Pantarhei HPC:
+     ```bash
+     module load Python
+     module load OpenMPI
+     module load Rust
+     module load cargo-c
+     module load Apptainer
+     module load git
+     module load netCDF
+     module load HDF5
+     module load SQLite    
+     cargo --version
+     cargo install --git https://github.com/CIROH-UA/rs_route.git
+     apptainer remote add --no-login SylabsCloud cloud.sycloud.io
+     apptainer pull ciroh-ngen-image.sif docker://awiciroh/ciroh-ngen-image
+     ```
    - Linux (Debian/Ubuntu):
      ```bash
      sudo apt install build-essential gfortran
