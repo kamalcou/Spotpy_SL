@@ -111,7 +111,10 @@ This code:
    ```bash
    pip install -e .
    ```
-
+   ```bash
+   conda create -n tools squashfuse -c conda-forge -y
+   conda activate tools
+   ```
 ## Expected Data Layout
 
 Before running calibration, `data_root` should contain a folder for your gage and supporting data folders:
