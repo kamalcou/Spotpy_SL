@@ -72,7 +72,8 @@ This code:
      module load git
      module load netCDF
      module load HDF5
-     module load SQLite    
+     module load SQLite
+     module load squashfs-tools    
      cargo --version
      cargo install --git https://github.com/CIROH-UA/rs_route.git
      apptainer remote add --no-login SylabsCloud cloud.sycloud.io
