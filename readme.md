@@ -67,6 +67,7 @@ This code:
      module load Python
      module load OpenMPI
      module load Rust
+     module load rustup
      module load cargo-c
      module load Apptainer
      module load git
@@ -76,8 +77,8 @@ This code:
      module load squashfs-tools    
      cargo --version
      cargo install --git https://github.com/CIROH-UA/rs_route.git
-     apptainer remote add --no-login SylabsCloud cloud.sycloud.io
-     apptainer pull ciroh-ngen-image.sif docker://awiciroh/ciroh-ngen-image
+     # apptainer remote add --no-login SylabsCloud cloud.sycloud.io
+     # apptainer pull ciroh-ngen-image.sif docker://awiciroh/ciroh-ngen-image
      ```
    - Linux (Debian/Ubuntu):
      ```bash
@@ -104,7 +105,6 @@ This code:
      ```
 5. Create and activate a virtual environment:
    ```bash
-   cd NGIAB-Spotpy_SL
    python -m venv .venv
    source .venv/bin/activate
    ```
@@ -112,10 +112,7 @@ This code:
    ```bash
    pip install -e .
    ```
-   ```bash
-   conda create -n tools squashfuse gocryptfs -c conda-forge -y
-   conda activate tools
-   ```
+   
 ## Expected Data Layout
 
 Before running calibration, `data_root` should contain a folder for your gage and supporting data folders:
