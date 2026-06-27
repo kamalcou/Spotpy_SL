@@ -141,7 +141,8 @@ Example:
 ### 1) Prepare data
 
 ```bash
-uvx --from ngiab_data_preprocess cli -i gage-10163000 -sfr --start 2015-06-15 --end 2015-08-15 --source aorc
+module load uv
+uv tool run --from ngiab_data_preprocess cli -i gage-10163000 -sfr --start 2015-06-15 --end 2015-08-15 --source aorc
 ```
 
 If you are unsure where the generated data lives, check:
